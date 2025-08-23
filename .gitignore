@@ -1,0 +1,4 @@
+recording/data/
+env/
+.claude/
+**/.env
