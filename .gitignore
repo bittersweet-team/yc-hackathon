@@ -2,3 +2,5 @@ recording/data/
 env/
 .claude/
 **/.env
+
+.mcp.json
