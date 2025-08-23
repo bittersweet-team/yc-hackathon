@@ -20,19 +20,26 @@ body {
 }
 
 .animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient 15s ease infinite;
+  background-size: 300% 300%;
+  animation: gradient 8s ease infinite;
+}
+
+.bg-300 {
+  background-size: 300% 300%;
 }
 
 @keyframes gradient {
-  0% {
+  0%, 100% {
     background-position: 0% 50%;
+  }
+  25% {
+    background-position: 50% 100%;
   }
   50% {
     background-position: 100% 50%;
   }
-  100% {
-    background-position: 0% 50%;
+  75% {
+    background-position: 50% 0%;
   }
 }
 
@@ -58,12 +65,12 @@ body {
 }
 
 .gradient-text {
-  background: linear-gradient(to right, rgb(24 24 27), rgb(82 82 91), rgb(24 24 27));
-  background-size: 200% 200%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #feca57 75%, #667eea 100%);
+  background-size: 400% 400%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: gradient 15s ease infinite;
+  animation: gradient 10s ease infinite;
 }
 
 .glass-effect {

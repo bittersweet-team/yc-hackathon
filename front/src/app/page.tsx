@@ -6,15 +6,15 @@ import { ArrowRight, CheckCircle, Mail, Play, Sparkles, Video, Zap, MousePointer
 import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { AuthModal } from "@/components/auth-modal"
+import { DemoForm } from "@/components/demo-form"
 import { useAuth } from "@/contexts/auth-context"
 
 export default function Home() {
-  const [email, setEmail] = useState("")
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
   const [showUserMenu, setShowUserMenu] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
-  
+
   const { user, signOut, loading } = useAuth()
 
   useEffect(() => {
@@ -48,8 +48,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-zinc-50 to-white">
       {/* Auth Modal */}
-      <AuthModal 
-        isOpen={showAuthModal} 
+      <AuthModal
+        isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         initialMode={authMode}
       />
@@ -69,37 +69,15 @@ export default function Home() {
               How it Works
             </Link>
             {loading ? (
-              <div className="h-8 w-8 rounded-full bg-zinc-200 animate-pulse" />
+              <div className="h-8 w-20 rounded-md bg-zinc-200 animate-pulse" />
             ) : user ? (
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-zinc-100 transition-colors"
-                >
-                  <div className="h-7 w-7 rounded-full bg-emerald-600 flex items-center justify-center">
-                    <User className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
-                </button>
-                
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-zinc-200 py-1 z-50">
-                    <div className="px-4 py-2 border-b border-zinc-200">
-                      <p className="text-sm font-medium">{user.user_metadata?.full_name || 'User'}</p>
-                      <p className="text-xs text-zinc-500">{user.email}</p>
-                    </div>
-                    <button
-                      onClick={() => signOut()}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-zinc-50 flex items-center gap-2"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
+              <Link href="/dashboard">
+                <Button size="sm" className="bg-zinc-900 hover:bg-zinc-800 text-white">
+                  Dashboard
+                </Button>
+              </Link>
             ) : (
-              <Button size="sm" onClick={handleSignIn}>
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleSignIn}>
                 Get Started
               </Button>
             )}
@@ -108,53 +86,46 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 md:py-32">
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-50 via-transparent to-amber-50 opacity-50" />
-        <div className="container mx-auto px-4 relative">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-medium mb-6">
-              <Sparkles className="h-4 w-4" />
-              AI-Powered Demo Creation
+      <section className="relative py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-medium mb-6">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-emerald-700">AI-Powered • No Recording • Instant Delivery</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 gradient-text">
-              Create Product Demos
-              <br />
-              <span className="text-zinc-900">With One Click</span>
-            </h1>
-            <p className="text-xl text-zinc-600 mb-8 text-balance">
-              Transform your product URL into engaging demo videos. No recording, no editing, just instant professional demos delivered to your inbox.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <div className="flex-1 max-w-sm">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-                />
-              </div>
-              <Button 
-                size="lg" 
-                className="bg-emerald-600 hover:bg-emerald-700"
-                onClick={handleGetStarted}
-              >
-                Start Free Trial
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-sm text-zinc-500 mt-4">
-              No credit card required
-            </p>
-          </div>
-        </div>
 
-        {/* Floating elements */}
-        <div className="absolute top-20 left-10 animate-float">
-          <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full opacity-20 blur-xl" />
-        </div>
-        <div className="absolute bottom-20 right-10 animate-float animation-delay-2000">
-          <div className="w-32 h-32 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full opacity-20 blur-xl" />
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 tracking-tight">
+              <span className="text-zinc-900">Create </span>
+              <span className="bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">
+                Product Demos
+              </span>
+              <br />
+              <span className="text-zinc-900 text-3xl md:text-5xl lg:text-6xl">With </span>
+              <span className="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent text-3xl md:text-5xl lg:text-6xl">
+                One Click
+              </span>
+            </h1>
+
+            <p className="text-lg md:text-xl text-zinc-600 mb-8 max-w-2xl mx-auto">
+              Just paste your URL. We'll create professional demo videos automatically.
+            </p>
+
+            <DemoForm user={user} onAuthRequired={handleGetStarted} />
+
+            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-8 text-sm text-zinc-600">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                No credit card
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                Max 60s videos
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -227,7 +198,12 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg transition-shadow relative overflow-hidden">
+              <div className="absolute top-4 right-4">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                  Coming Soon
+                </span>
+              </div>
               <CardHeader>
                 <div className="h-12 w-12 bg-zinc-100 rounded-lg flex items-center justify-center mb-4">
                   <Globe className="h-6 w-6 text-zinc-600" />
@@ -238,17 +214,17 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2">
+                <ul className="space-y-2 opacity-60">
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 mt-0.5" />
+                    <div className="h-4 w-4 rounded-full border-2 border-zinc-400 mt-0.5" />
                     <span className="text-sm text-zinc-600">MP4 & WebM formats</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 mt-0.5" />
+                    <div className="h-4 w-4 rounded-full border-2 border-zinc-400 mt-0.5" />
                     <span className="text-sm text-zinc-600">Social media ready</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 mt-0.5" />
+                    <div className="h-4 w-4 rounded-full border-2 border-zinc-400 mt-0.5" />
                     <span className="text-sm text-zinc-600">Embed anywhere</span>
                   </li>
                 </ul>
@@ -321,8 +297,8 @@ export default function Home() {
           <p className="text-lg text-zinc-600 mb-8">
             Join thousands of teams using Demo Hunters to showcase their products
           </p>
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="bg-zinc-900 hover:bg-zinc-800"
             onClick={handleGetStarted}
           >
