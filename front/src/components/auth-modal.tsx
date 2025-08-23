@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Modal } from "@/components/ui/modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 
 interface AuthModalProps {
   isOpen: boolean
@@ -25,6 +26,18 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
+  
+  const { signInWithEmail, signUpWithEmail, signInWithGoogle, user } = useAuth()
+
+  useEffect(() => {
+    setMode(initialMode)
+  }, [initialMode])
+
+  useEffect(() => {
+    if (user) {
+      onClose()
+    }
+  }, [user, onClose])
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -32,7 +45,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
   }
 
   const validatePassword = (password: string) => {
-    return password.length >= 8
+    return password.length >= 6
   }
 
   const validateForm = () => {
@@ -47,7 +60,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
     if (!formData.password) {
       newErrors.password = 'Password is required'
     } else if (mode === 'signup' && !validatePassword(formData.password)) {
-      newErrors.password = 'Password must be at least 8 characters'
+      newErrors.password = 'Password must be at least 6 characters'
     }
 
     if (mode === 'signup') {
@@ -74,19 +87,55 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
     }
 
     setIsLoading(true)
+    setErrors({})
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
       if (mode === 'signup') {
-        setSuccessMessage('Account created successfully! Check your email to verify.')
+        const { error } = await signUpWithEmail(formData.email, formData.password, formData.fullName)
+        
+        if (error) {
+          if (error.message.includes('already registered')) {
+            setErrors({ email: 'This email is already registered' })
+          } else {
+            setErrors({ general: error.message })
+          }
+        } else {
+          setSuccessMessage('Account created! Check your email to verify your account.')
+          setTimeout(() => {
+            onClose()
+          }, 3000)
+        }
       } else {
-        setSuccessMessage('Welcome back!')
-        setTimeout(() => {
-          onClose()
-        }, 1000)
+        const { error } = await signInWithEmail(formData.email, formData.password)
+        
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            setErrors({ general: 'Invalid email or password' })
+          } else {
+            setErrors({ general: error.message })
+          }
+        } else {
+          setSuccessMessage('Welcome back!')
+          setTimeout(() => {
+            onClose()
+          }, 1000)
+        }
       }
-    }, 1500)
+    } catch (error) {
+      setErrors({ general: 'An unexpected error occurred. Please try again.' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true)
+    const { error } = await signInWithGoogle()
+    
+    if (error) {
+      setErrors({ general: error.message })
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -122,6 +171,13 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
               : 'Sign up to start creating amazing demos'}
           </p>
         </div>
+
+        {errors.general && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+            <span className="text-sm text-red-700">{errors.general}</span>
+          </div>
+        )}
 
         {successMessage && (
           <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-2">
@@ -188,7 +244,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder={mode === 'signup' ? "At least 8 characters" : "Enter your password"}
+                placeholder={mode === 'signup' ? "At least 6 characters" : "Enter your password"}
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 className={cn(
@@ -281,7 +337,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
             type="button"
             variant="outline"
             className="w-full"
-            onClick={() => alert('Google login would be implemented here')}
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path

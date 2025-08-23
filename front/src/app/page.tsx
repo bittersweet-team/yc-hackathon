@@ -2,19 +2,42 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowRight, CheckCircle, Mail, Play, Sparkles, Video, Zap, MousePointer, Globe, Palette, LogIn } from "lucide-react"
+import { ArrowRight, CheckCircle, Mail, Play, Sparkles, Video, Zap, MousePointer, Globe, Palette, LogIn, User, LogOut } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { AuthModal } from "@/components/auth-modal"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function Home() {
   const [email, setEmail] = useState("")
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+  
+  const { user, signOut, loading } = useAuth()
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const handleGetStarted = () => {
-    setAuthMode('signup')
-    setShowAuthModal(true)
+    if (user) {
+      // User is logged in, redirect to dashboard or demo creation
+      console.log('User is logged in, redirect to dashboard')
+    } else {
+      setAuthMode('signup')
+      setShowAuthModal(true)
+    }
   }
 
   const handleSignIn = () => {
@@ -45,18 +68,41 @@ export default function Home() {
             <Link href="#how-it-works" className="text-sm font-medium hover:text-zinc-600 transition-colors">
               How it Works
             </Link>
-            <Button 
-              size="sm" 
-              variant="ghost"
-              onClick={handleSignIn}
-              className="text-sm"
-            >
-              <LogIn className="h-4 w-4 mr-2" />
-              Sign In
-            </Button>
-            <Button size="sm" onClick={handleGetStarted}>
-              Get Started
-            </Button>
+            {loading ? (
+              <div className="h-8 w-8 rounded-full bg-zinc-200 animate-pulse" />
+            ) : user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-zinc-100 transition-colors"
+                >
+                  <div className="h-7 w-7 rounded-full bg-emerald-600 flex items-center justify-center">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
+                </button>
+                
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-zinc-200 py-1 z-50">
+                    <div className="px-4 py-2 border-b border-zinc-200">
+                      <p className="text-sm font-medium">{user.user_metadata?.full_name || 'User'}</p>
+                      <p className="text-xs text-zinc-500">{user.email}</p>
+                    </div>
+                    <button
+                      onClick={() => signOut()}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-zinc-50 flex items-center gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Button size="sm" onClick={handleSignIn}>
+                Get Started
+              </Button>
+            )}
           </div>
         </div>
       </nav>
