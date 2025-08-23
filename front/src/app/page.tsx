@@ -2,17 +2,37 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowRight, CheckCircle, Mail, Play, Sparkles, Video, Zap, MousePointer, Globe, Palette } from "lucide-react"
+import { ArrowRight, CheckCircle, Mail, Play, Sparkles, Video, Zap, MousePointer, Globe, Palette, LogIn } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+import { AuthModal } from "@/components/auth-modal"
 
 export default function Home() {
   const [email, setEmail] = useState("")
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
+
+  const handleGetStarted = () => {
+    setAuthMode('signup')
+    setShowAuthModal(true)
+  }
+
+  const handleSignIn = () => {
+    setAuthMode('login')
+    setShowAuthModal(true)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-zinc-50 to-white">
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)}
+        initialMode={authMode}
+      />
+
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 glass-effect">
+      <nav className="sticky top-0 z-40 glass-effect">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <Video className="h-6 w-6" />
@@ -25,7 +45,18 @@ export default function Home() {
             <Link href="#how-it-works" className="text-sm font-medium hover:text-zinc-600 transition-colors">
               How it Works
             </Link>
-            <Button size="sm">Get Started</Button>
+            <Button 
+              size="sm" 
+              variant="ghost"
+              onClick={handleSignIn}
+              className="text-sm"
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              Sign In
+            </Button>
+            <Button size="sm" onClick={handleGetStarted}>
+              Get Started
+            </Button>
           </div>
         </div>
       </nav>
@@ -57,7 +88,11 @@ export default function Home() {
                   className="w-full px-4 py-3 rounded-lg border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                 />
               </div>
-              <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700">
+              <Button 
+                size="lg" 
+                className="bg-emerald-600 hover:bg-emerald-700"
+                onClick={handleGetStarted}
+              >
                 Start Free Trial
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -240,7 +275,11 @@ export default function Home() {
           <p className="text-lg text-zinc-600 mb-8">
             Join thousands of teams using Demo Hunters to showcase their products
           </p>
-          <Button size="lg" className="bg-zinc-900 hover:bg-zinc-800">
+          <Button 
+            size="lg" 
+            className="bg-zinc-900 hover:bg-zinc-800"
+            onClick={handleGetStarted}
+          >
             <Play className="mr-2 h-4 w-4" />
             Create Your First Demo
           </Button>
