@@ -43,12 +43,19 @@ class TaskWorker:
         try:
             response = self.supabase.rpc('claim_next_task').execute()
             
-            if response.data:
+            # Check if we got a valid task (not just a row with NULL id)
+            if response.data and response.data.get('id'):
                 return response.data
             return None
             
         except Exception as e:
-            logger.error(f"Failed to claim task: {str(e)}")
+            # Log the error but don't crash - this might be a transient issue
+            error_msg = str(e)
+            if "22P02" in error_msg or "invalid input syntax" in error_msg:
+                # This is the UUID error, which means no tasks are available
+                logger.debug("No tasks available in queue")
+            else:
+                logger.error(f"Failed to claim task: {error_msg}")
             return None
     
     async def process_task(self, task: Dict[str, Any]):

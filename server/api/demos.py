@@ -23,7 +23,7 @@ async def create_demo(
     demo_data = {
         "user_id": current_user["id"],
         "product_url": str(demo_request.product_url),
-        "description": demo_request.description,
+        "description": demo_request.description or "",
         "status": DemoStatus.PENDING.value,
         "created_at": datetime.utcnow().isoformat(),
         "updated_at": datetime.utcnow().isoformat()

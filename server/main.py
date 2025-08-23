@@ -12,6 +12,7 @@ load_dotenv()
 
 # Import routers
 from api.demos import router as demos_router
+from api.test import router as test_router
 from utils.config import settings
 from utils.supabase_client import get_supabase_client
 from workers.task_worker import task_worker
@@ -69,6 +70,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(demos_router)
+app.include_router(test_router)
 
 # Health check endpoint
 @app.get("/health")

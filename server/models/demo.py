@@ -14,14 +14,14 @@ class DemoStatus(str, Enum):
 
 class DemoRequest(BaseModel):
     product_url: HttpUrl
-    description: str
+    description: Optional[str] = ""
     email: Optional[str] = None
 
 class DemoResponse(BaseModel):
     id: str
     user_id: str
     product_url: str
-    description: str
+    description: Optional[str] = ""
     status: DemoStatus
     long_video_url: Optional[str] = None
     short_video_urls: List[str] = []
@@ -33,7 +33,7 @@ class Demo(BaseModel):
     id: str
     user_id: str
     product_url: str
-    description: str
+    description: Optional[str] = ""
     status: DemoStatus
     long_video_url: Optional[str] = None
     short_video_urls: List[str] = []
