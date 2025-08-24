@@ -45,6 +45,7 @@ class VideoGenerator:
             # Step 1: Record the demo video
             logger.info(f"Recording demo for {demo['product_url']}")
             recorded_video_url = await recording_service.record_demo(
+                demo_id,
                 demo['product_url'],
                 demo['description']
             )

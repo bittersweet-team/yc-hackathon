@@ -63,6 +63,7 @@ Remember: This is for a demo video that needs to go viral. Be authentic, show ge
 """
     
     async def record_demo(self,
+                         demo_id: str,
                          website_url: str,
                          service_name: str,
                          instruction: str,
@@ -84,12 +85,12 @@ Remember: This is for a demo video that needs to go viral. Be authentic, show ge
         try:
             # Create output directory
             if output_dir is None:
-                output_dir = tempfile.mkdtemp(prefix="demo_recording_")
+                output_dir = tempfile.mkdtemp(prefix=f"demo_recording_{demo_id}_")
             else:
                 os.makedirs(output_dir, exist_ok=True)
-            
+
             logger.info(f"Recording to directory: {output_dir}")
-            
+
             # Configure browser profile for recording
             browser_profile = BrowserProfile(
                 headless=headless,

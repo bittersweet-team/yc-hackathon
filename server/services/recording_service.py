@@ -38,7 +38,7 @@ class RecordingService:
             model="gpt-4o"
         )
         
-    async def record_demo(self, url: str, instruction: str, login_info: Optional[str] = None) -> Optional[str]:
+    async def record_demo(self, demo_id: str, url: str, instruction: str, login_info: Optional[str] = None) -> Optional[str]:
         """
         Record a demo video of a website using browser automation with viral prompting
         Returns the URL of the recorded video
@@ -62,6 +62,7 @@ Additional tips for viral demo:
             
             # Use BrowserRecorder with advanced prompting
             video_path = await self.browser_recorder.record_demo(
+                demo_id=demo_id,
                 website_url=url,
                 service_name=service_name,
                 instruction=enhanced_instruction,
