@@ -8,9 +8,9 @@ from utils.supabase_client import get_supabase_client
 import logging
 from models.klap_models import TaskObject, ExportObject, ExportStatus
 import httpx
-import uuid
 
 logger = logging.getLogger(__name__)
+
 
 class VideoGenerator:
     async def process_demo(self, demo_id: str, user_email: str):

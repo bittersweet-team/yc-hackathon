@@ -122,7 +122,7 @@ export default function Home() {
               </span>
               <span className="flex items-center gap-1.5">
                 <CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                Max 60s videos
+                Max 30s videos
               </span>
             </div>
           </div>

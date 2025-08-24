@@ -32,8 +32,8 @@ class KlapService:
         video_url: str,
         *,
         language: str = "en",
-        max_duration: int = 60,
-        max_clip_count: int = 5,
+        max_duration: int = 30,
+        max_clip_count: int = 10,
         editing_options: Optional[EditingOptions] = None
     ) -> Optional[TaskObject]:
         """
@@ -49,7 +49,7 @@ class KlapService:
                 max_clip_count=max_clip_count,
                 editing_options=editing_options or EditingOptions()
             )
-            
+
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
                     f"{self.base_url}/tasks/video-to-shorts",
