@@ -1,35 +1,35 @@
 import asyncio
 from browser_use import Agent, ChatOpenAI
 from browser_use.browser.profile import BrowserProfile
+from browser_use import BrowserSession
+from pathlib import Path
+from typing import Optional, Dict, Any
+import tempfile
+import os
+import logging
 
-from browser_use import BrowserSession, Agent
-from dotenv import load_dotenv
+logger = logging.getLogger(__name__)
 
-load_dotenv()
-
-INSTRUCTION_FROM_USER = """
-# 1. look around the landing page first. also show the pricing too.
-# 2. go to product dashboard (cloud on top right) - if need login, use the account below
-# 3. click one of sample requests.
-# 4. let's see how the web agents works
-# 5. wrap up the demo
-"""
-
-LOGIN_INFO = """
-ACCOUNT;
-ID/EMAIL: junseong@bittersweet.ai
-PASSWORD: vgm4zbr*ytj*EJY3anw
-"""
-
-SERVICE_NAME = "browser-use"
-WEBSITE_URL = "https://browser-use.com/"
-
-
-TASK_PROMPT = """
-target website: {WEBSITE_URL}
+class BrowserRecorder:
+    """Advanced browser recording with viral demo prompting"""
+    
+    def __init__(self, openai_api_key: str, model: str = "gpt-4o"):
+        self.openai_api_key = openai_api_key
+        self.model = model
+    
+    def create_viral_task_prompt(self, 
+                                website_url: str, 
+                                service_name: str,
+                                instruction: str
+      ) -> str:
+        """
+        Create an advanced task prompt for viral demo recording
+        """
+        return f"""
+target website: {website_url}
 
 You are Alex, a tech-savvy product manager at a fast-growing startup who's been struggling with repetitive web tasks and browser automation. 
-You just discovered {SERVICE_NAME} through a colleague's recommendation and you're genuinely excited to see if this could solve your workflow problems.
+You just discovered {service_name} through a colleague's recommendation and you're genuinely excited to see if this could solve your workflow problems.
 
 Your persona:
 - You're looking for something that "just works" without writing complex code
@@ -53,43 +53,134 @@ Exploration approach:
 - End with enthusiasm: "This changes everything for our team!"
 
 ## User's specific instructions for demo flow -> Strictly follow these instructions
-{INSTRUCTION_FROM_USER}
+{instruction}
 
 ## Account credentials for dashboard access -> Strictly follow these credentials
-{LOGIN_INFO}
+ID/EMAIL: junseong@bittersweet.ai
+PASSWORD: vgm4zbr*ytj*EJY3anw
 
 Remember: This is for a demo video that needs to go viral. Be authentic, show genuine reactions, and focus on the most impressive and unique features. Don't just click around - tell a story that hooks viewers from the first second!
-"""   
+"""
+    
+    async def record_demo(self,
+                         website_url: str,
+                         service_name: str,
+                         instruction: str,
+                         output_dir: Optional[str] = None,
+                         headless: bool = True) -> Optional[str]:
+        """
+        Record a demo video with advanced prompting
+        
+        Args:
+            website_url: Target website URL
+            service_name: Name of the service being demoed
+            instruction: Specific instructions for the demo
+            output_dir: Directory to save the recording (temp if not specified)
+            headless: Run browser in headless mode
+            
+        Returns:
+            Path to the recorded video file or None if failed
+        """
+        try:
+            # Create output directory
+            if output_dir is None:
+                output_dir = tempfile.mkdtemp(prefix="demo_recording_")
+            else:
+                os.makedirs(output_dir, exist_ok=True)
+            
+            logger.info(f"Recording to directory: {output_dir}")
+            
+            # Configure browser profile for recording
+            browser_profile = BrowserProfile(
+                headless=headless,
+                window_size={"width": 1920, "height": 1080},
+                user_data_dir=os.path.join(output_dir, 'browser_profile'),
+                record_video_dir=output_dir,
+                record_video_size={"width": 1920, "height": 1080},
+                highlight_elements=False,
+                disable_security=True,
+            )
+            
+            # Create browser session
+            browser_session = BrowserSession(browser_profile=browser_profile)
+            await browser_session.start()
+            
+            # Create viral task prompt
+            task_prompt = self.create_viral_task_prompt(
+                website_url=website_url,
+                service_name=service_name,
+                instruction=instruction
+            )
+            
+            # Create and configure agent
+            agent = Agent(
+                task=task_prompt,
+                use_vision=True,
+                vision_detail_level="low",
+                llm=ChatOpenAI(model=self.model, api_key=self.openai_api_key),
+                browser_session=browser_session,
+                browser_profile=browser_profile,
+            )
+            
+            # Run the recording
+            logger.info(f"Starting viral demo recording for {website_url}")
+            await agent.run()
+            await browser_session.stop()
+            
+            # Find the recorded video file
+            video_files = list(Path(output_dir).glob("*.webm"))
+            if not video_files:
+                logger.error("No video file found after recording")
+                return None
+            
+            video_path = str(video_files[0])
+            logger.info(f"Demo video recorded successfully: {video_path}")
+            return video_path
+            
+        except Exception as e:
+            logger.error(f"Recording failed: {str(e)}")
+            return None
 
+
+# Standalone execution for testing
 async def main():
-
-      browser_profile = BrowserProfile(
-            headless=True,
-            window_size={"width": 1920, "height": 1080},
-            user_data_dir='~/.config/browseruse/profiles/default',
-            record_video_dir='./data/recordings',
-            record_video_size={"width": 1920, "height": 1080},
-            highlight_elements=False,
-      )
-
-      browser_session = BrowserSession(
-         browser_profile=browser_profile,
-
-      )
-
-      await browser_session.start()
-
-      agent = Agent(
-         task=TASK_PROMPT,
-         use_vision=True,
-         vision_detail_level="low",
-         llm=ChatOpenAI(model="o3"),
-         browser_session=browser_session,
-         browser_profile=browser_profile,
-      )
-
-      history = await agent.run()
-      await browser_session.stop()
+    """Example usage for standalone testing"""
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    # Example configuration
+    INSTRUCTION = """
+# 1. Look around the landing page first. Also show the pricing too.
+# 2. Go to product dashboard (cloud on top right) - if need login, use the account below
+# 3. Click one of sample requests.
+# 4. Let's see how the web agents works
+# 5. Wrap up the demo
+"""
+    
+    LOGIN_INFO = """
+ACCOUNT:
+ID/EMAIL: demo@example.com
+PASSWORD: demo123
+"""
+    
+    recorder = BrowserRecorder(
+        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        model="gpt-4o"
+    )
+    
+    video_path = await recorder.record_demo(
+        website_url="https://browser-use.com/",
+        service_name="browser-use",
+        instruction=INSTRUCTION,
+        login_info=LOGIN_INFO,
+        output_dir="./data/recordings",
+        headless=True
+    )
+    
+    if video_path:
+        print(f"Recording saved to: {video_path}")
+    else:
+        print("Recording failed")
 
 
 if __name__ == "__main__":

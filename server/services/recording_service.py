@@ -7,11 +7,12 @@ import uuid
 import tempfile
 from pathlib import Path
 from pydantic import HttpUrl, BaseModel, Field
+from urllib.parse import urlparse
 
-# Recording dependencies
-from browser_use import Agent, ChatOpenAI
-from browser_use.browser.profile import BrowserProfile
-from browser_use import BrowserSession
+# Import recording module with advanced prompting
+from services.recording import BrowserRecorder
+
+# Dubbing dependencies
 from google import genai
 from google.genai import types
 from elevenlabs.client import AsyncElevenLabs
@@ -31,54 +32,47 @@ class RecordingService:
         self.elevenlabs_voice_id = settings.elevenlabs_voice_id
         self.enable_dubbing = settings.enable_dubbing
         
-    async def record_demo(self, url: str, instruction: str) -> Optional[str]:
+        # Initialize browser recorder with advanced prompting
+        self.browser_recorder = BrowserRecorder(
+            openai_api_key=self.openai_api_key,
+            model="gpt-4o"
+        )
+        
+    async def record_demo(self, url: str, instruction: str, login_info: Optional[str] = None) -> Optional[str]:
         """
-        Record a demo video of a website using browser automation
+        Record a demo video of a website using browser automation with viral prompting
         Returns the URL of the recorded video
         """
         try:
-            # Create temp directory for recordings
-            temp_dir = tempfile.mkdtemp(prefix="demo_recording_")
+            # Extract service name from URL for better prompting
+            parsed_url = urlparse(url)
+            service_name = parsed_url.hostname.replace('www.', '').split('.')[0] if parsed_url.hostname else "product"
             
-            # Configure browser profile for recording
-            browser_profile = BrowserProfile(
-                headless=True,
-                window_size={"width": 1920, "height": 1080},
-                user_data_dir=os.path.join(temp_dir, 'browser_profile'),
-                record_video_dir=temp_dir,
-                record_video_size={"width": 1920, "height": 1080},
-                highlight_elements=False,
+            # Enhanced instructions with viral demo tips
+            enhanced_instruction = f"""
+{instruction}
+
+Additional tips for viral demo:
+- Start with curiosity and skepticism
+- Show genuine surprise at impressive features
+- Think out loud about how this solves real problems
+- Build excitement throughout the demo
+- End with clear value proposition
+"""
+            
+            # Use BrowserRecorder with advanced prompting
+            video_path = await self.browser_recorder.record_demo(
+                website_url=url,
+                service_name=service_name,
+                instruction=enhanced_instruction,
+                output_dir=None,  # Use temp directory
+                headless=True
             )
             
-            # Create browser session
-            browser_session = BrowserSession(browser_profile=browser_profile)
-            await browser_session.start()
-            
-            # Create task prompt
-            task_prompt = self._create_task_prompt(url, instruction)
-            
-            # Create and run agent
-            agent = Agent(
-                task=task_prompt,
-                use_vision=True,
-                vision_detail_level="low",
-                llm=ChatOpenAI(model="gpt-4o", api_key=self.openai_api_key),
-                browser_session=browser_session,
-                browser_profile=browser_profile,
-            )
-            
-            # Run the recording
-            logger.info(f"Starting browser recording for {url}...")
-            await agent.run()
-            await browser_session.stop()
-            
-            # Find the recorded video file
-            video_files = list(Path(temp_dir).glob("*.webm"))
-            if not video_files:
-                logger.error("No video file found after recording")
+            if not video_path:
+                logger.error("Failed to record video")
                 return None
             
-            video_path = str(video_files[0])
             logger.info(f"Video recorded at: {video_path}")
             
             # Generate dubbing if enabled
@@ -91,26 +85,6 @@ class RecordingService:
         except Exception as e:
             logger.error(f"Recording error: {str(e)}")
             return None
-    
-    def _create_task_prompt(self, url: str, instruction: str) -> str:
-        """
-        Create a task prompt for the browser agent
-        """
-        return f"""
-        Target website: {url}
-        
-        You are Alex, a tech-savvy product manager exploring this product.
-        
-        Demo objectives:
-        1. Show the main features naturally
-        2. Demonstrate real use cases
-        3. Focus on what makes this product unique
-        
-        User's specific instructions:
-        {instruction}
-        
-        Be authentic and show genuine reactions to features you discover.
-        """
     
     async def _add_dubbing(self, video_path: str, url: str, instruction: str) -> str:
         """
@@ -156,14 +130,27 @@ class RecordingService:
             
             The demo was created with these instructions: {instruction}
             
-            STYLE: Like a TOP influencer introducing an AMAZING product
+            STYLE: Like a TOP tech influencer discovering an AMAZING product
             
             MUST INCLUDE:
-            - HOOK in first 3 seconds
-            - Talk directly to viewer
-            - Show off the BEST features dramatically
-            - Generate a SINGLE continuous transcript
-            - Use <break time="X.Xs" /> for natural pauses
+            - HOOK in first 3 seconds ("Stop what you're doing!" / "This changes EVERYTHING!")
+            - Talk directly to viewer ("YOU need to see this")
+            - Build excitement progressively
+            - Show genuine reactions ("Wait, WHAT?! It can do that?!")
+            - Connect to real pain points ("If you've ever struggled with...")
+            - Clear value propositions ("This literally saves hours")
+            - Call to action at the end
+            
+            TONE:
+            - Authentic and conversational
+            - Excited but not overly salesy
+            - Focus on problem-solving and value
+            - Use natural pauses for emphasis
+            
+            Generate a SINGLE continuous transcript with:
+            - Natural speech patterns
+            - <break time="X.Xs" /> for dramatic pauses
+            - Emphasis on key moments
             """
             
             response = client.models.generate_content(
@@ -195,7 +182,7 @@ class RecordingService:
         try:
             client = AsyncElevenLabs(api_key=self.elevenlabs_api_key)
             
-            # Generate audio
+            # Generate audio with engaging voice
             audio_generator = client.text_to_speech.convert(
                 text=transcript,
                 voice_id=self.elevenlabs_voice_id,
@@ -231,7 +218,7 @@ class RecordingService:
             # Replace original audio with dubbed audio
             final_video = video.with_audio(dubbed_audio)
             
-            # Write output
+            # Write output with optimized settings
             final_video.write_videofile(
                 output_path,
                 codec='libx264',
@@ -261,14 +248,15 @@ class RecordingService:
                 video_data = f.read()
             
             # Generate unique filename
-            filename = f"demos/{uuid.uuid4()}/recording.mp4"
+            file_extension = ".mp4" if video_path.endswith(".mp4") else ".webm"
+            filename = f"demos/{uuid.uuid4()}/recording{file_extension}"
             
             # Upload to Supabase Storage
             supabase = get_supabase_client()
             supabase.storage.from_("demo-videos").upload(
                 filename,
                 video_data,
-                file_options={"content-type": "video/mp4"}
+                file_options={"content-type": f"video/{file_extension[1:]}"}
             )
             
             # Get public URL
