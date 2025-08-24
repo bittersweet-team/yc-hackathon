@@ -224,7 +224,7 @@ Additional tips for viral demo:
                 output_path,
                 codec='libx264',
                 audio_codec='aac',
-                temp_audiofile='temp-audio.m4a',
+                temp_audiofile='temp-audio_'+str(uuid.uuid4().hex)+'.m4a',
                 remove_temp=True,
                 logger=None
             )
