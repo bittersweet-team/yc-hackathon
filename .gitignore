@@ -2,5 +2,6 @@ recording/data/
 env/
 .claude/
 **/.env
-
+.DS_Store
+*.mp4
 .mcp.json
