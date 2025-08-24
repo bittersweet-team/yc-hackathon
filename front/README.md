@@ -29,6 +29,8 @@ npm run dev
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+
+DEMO_HUNTERS_API_URL=http://127.0.0.1:8000
 ```
 
 ## Project Structure

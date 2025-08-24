@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const API_URL = process.env.DEMO_HUNTERS_API_URL || 'http://localhost:8000'
 
 export interface Demo {
   id: string
@@ -24,17 +24,17 @@ export interface CreateDemoRequest {
 async function getAuthToken(): Promise<string> {
   const supabase = createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  
+
   if (!session?.access_token) {
     throw new Error('Not authenticated')
   }
-  
+
   return session.access_token
 }
 
 export async function createDemo(request: CreateDemoRequest): Promise<Demo> {
   const token = await getAuthToken()
-  
+
   const response = await fetch(`${API_URL}/api/demo`, {
     method: 'POST',
     headers: {
@@ -43,59 +43,59 @@ export async function createDemo(request: CreateDemoRequest): Promise<Demo> {
     },
     body: JSON.stringify(request)
   })
-  
+
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.detail || 'Failed to create demo')
   }
-  
+
   return response.json()
 }
 
 export async function listDemos(): Promise<Demo[]> {
   const token = await getAuthToken()
-  
+
   const response = await fetch(`${API_URL}/api/demos`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
   })
-  
+
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.detail || 'Failed to fetch demos')
   }
-  
+
   return response.json()
 }
 
 export async function getDemo(demoId: string): Promise<Demo> {
   const token = await getAuthToken()
-  
+
   const response = await fetch(`${API_URL}/api/demo/${demoId}`, {
     headers: {
       'Authorization': `Bearer ${token}`
     }
   })
-  
+
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.detail || 'Failed to fetch demo')
   }
-  
+
   return response.json()
 }
 
 export async function deleteDemo(demoId: string): Promise<void> {
   const token = await getAuthToken()
-  
+
   const response = await fetch(`${API_URL}/api/demo/${demoId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`
     }
   })
-  
+
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.detail || 'Failed to delete demo')
