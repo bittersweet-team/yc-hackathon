@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 
-const API_URL = process.env.DEMO_HUNTERS_API_URL || 'http://localhost:8000'
+const API_URL = process.env.DEMO_HUNTERS_API_URL || 'https://demo-hunters-api.bittersweet.ai'
 
 export interface Demo {
   id: string
