@@ -16,25 +16,25 @@ httpx>=0.28.1
 agentmail>=0.0.53
 
 # Recording dependencies
-browser-use>=0.5.11
-browser-use-sdk>=1.0.2
-patchright>=1.52.5
-playwright>=1.54.0
+browser-use==0.5.11
+browser-use-sdk==1.0.2
+patchright==1.52.5
+playwright==1.54.0
 
 # AI/ML dependencies
-openai>=1.99.2
+openai==1.99.2
 google-genai==1.29.0
-google-generativeai>=0.8.5
-elevenlabs>=2.11.0
-anthropic>=0.58.2
+google-generativeai==0.8.5
+elevenlabs==2.11.0
+anthropic==0.58.2
 
 # Video processing
-moviepy>=2.2.1
-ffmpeg-python>=0.2.0
-imageio>=2.37.0
-imageio-ffmpeg>=0.6.0
+moviepy==2.2.1
+ffmpeg-python==0.2.0
+imageio==2.37.0
+imageio-ffmpeg==0.6.0
 
 # Utilities
-loguru>=0.7.3
-beautifulsoup4>=4.13.4
-markdownify>=1.1.0
+loguru==0.7.3
+beautifulsoup4==4.13.4
+markdownify==1.1.0
