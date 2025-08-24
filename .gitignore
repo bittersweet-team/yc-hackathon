@@ -4,3 +4,4 @@ env/
 **/.env
 .DS_Store
 *.mp4
+.mcp.json
